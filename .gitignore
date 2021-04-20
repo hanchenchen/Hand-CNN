@@ -1,2 +1,5 @@
 model/
 *.h5
+datasets/*/
+.DS_Store
+*/.DS_Store

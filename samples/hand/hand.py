@@ -197,12 +197,12 @@ def train(model):
     """Train the model."""
     # Training dataset.
     dataset_train = HandDataset()
-    dataset_train.load_hand(args.dataset + "train.txt")
+    dataset_train.load_hand('datasets/' + args.dataset + "/train_annotations.txt")
     dataset_train.prepare()
     #
     # Validation dataset
     dataset_val = HandDataset()
-    dataset_val.load_hand(args.dataset + "oxford_annos.txt")
+    dataset_val.load_hand('datasets/' + args.dataset + "/val_annotations.txt")
     dataset_val.prepare()
 
     # *** This training schedule is an example. Update to your needs ***
@@ -228,8 +228,8 @@ def test(model, to_save=True):
     testset = args.testset
     dataset_test = HandDataset()
 
-    testset == "oxford"
-    dataset_test.load_hand(args.dataset + "oxford_annos.txt")
+    testset == args.dataset + '_test'
+    dataset_test.load_hand('datasets/' + args.dataset + "/test_annotations.txt")
 
 
     dataset_test.prepare()
@@ -364,9 +364,9 @@ def test(model, to_save=True):
 
 def test_bbox(model, to_save=True):
     # Test dataset.
-    testset = "oxford"
+    testset = args.dataset + '_test'
     dataset_test = HandDataset()
-    dataset_test.load_hand(args.dataset + "oxford_annos.txt")
+    dataset_test.load_hand('datasets/' + args.dataset + "/test_annotations.txt")
     dataset_test.prepare()
     pred_m = []
     gt_m = []
