@@ -6,6 +6,7 @@ import numpy as np
 import skimage.draw
 import matplotlib.pyplot as plt
 import pickle
+
 # Root directory of the project
 # ROOT_DIR = os.path.abspath("../../")
 ROOT_DIR = os.path.abspath("./")
@@ -18,12 +19,14 @@ from mrcnn import visualize as vis
 import cv2
 import math
 import scipy
+
 # Path to trained weights file
 COCO_WEIGHTS_PATH = os.path.join(ROOT_DIR, "model/mask_rcnn_coco.h5")
 
 # Directory to save logs and model checkpoints, if not provided
 # through the command line argument --logs
 DEFAULT_LOGS_DIR = os.path.join(ROOT_DIR, "new_logs")
+
 
 ############################################################
 #  Configurations
@@ -197,12 +200,12 @@ def train(model):
     """Train the model."""
     # Training dataset.
     dataset_train = HandDataset()
-    dataset_train.load_hand('datasets/' + args.dataset + "/train_annotations.txt")
+    dataset_train.load_hand("datasets/train_annotations.txt")
     dataset_train.prepare()
     #
     # Validation dataset
     dataset_val = HandDataset()
-    dataset_val.load_hand('datasets/' + args.dataset + "/val_annotations.txt")
+    dataset_val.load_hand("datasets/val_annotations.txt")
     dataset_val.prepare()
 
     # *** This training schedule is an example. Update to your needs ***
@@ -216,7 +219,6 @@ def train(model):
                 layers='all')
 
 
-
 def test(model, to_save=True):
     """
 
@@ -228,15 +230,13 @@ def test(model, to_save=True):
     testset = args.testset
     dataset_test = HandDataset()
 
-    testset == args.dataset + '_test'
-    dataset_test.load_hand('datasets/' + args.dataset + "/test_annotations.txt")
-
+    dataset_test.load_hand('datasets/' + args.dataset + "_test_annotations.txt")
 
     dataset_test.prepare()
     pred_m = []
     gt_m = []
     pred_s = []
-    dir_name = "./samples/hand/results/"+testset+"_{:%m%d%H%M}/".format(datetime.datetime.now())
+    dir_name = "./samples/hand/results/" + testset + "_{:%m%d%H%M}/".format(datetime.datetime.now())
     if to_save:
         if not os._exists(dir_name):
             os.mkdir(dir_name)
@@ -248,7 +248,7 @@ def test(model, to_save=True):
         image_path = image_info['path']
         img_origin = skimage.io.imread(image_path)
         h, w, _ = img_origin.shape
-        img = img_origin.copy()	
+        img = img_origin.copy()
 
         gt_polygons = image_info['polygons']
         gt_boxes = []
@@ -277,9 +277,10 @@ def test(model, to_save=True):
         if y1 > 0:
             if len(pred_boxes) > 0:
                 gt_match, pred_match, overlaps, pred_scores, gt_angles, pred_angles = \
-                            utils.compute_matches_with_scores(gt_boxes, gt_class_ids, gt_masks, gt_orientations,
-                            pred_boxes, pred_class_ids, pred_scores, pred_masks, pred_orientations,
-                            iou_threshold=0.5, score_threshold=0.0)
+                    utils.compute_matches_with_scores(gt_boxes, gt_class_ids, gt_masks, gt_orientations,
+                                                      pred_boxes, pred_class_ids, pred_scores, pred_masks,
+                                                      pred_orientations,
+                                                      iou_threshold=0.5, score_threshold=0.0)
                 gt_a.extend(gt_angles)
                 pred_a.extend(pred_angles)
                 if to_save:
@@ -303,7 +304,7 @@ def test(model, to_save=True):
 
         print("pred_match: ", pred_match)
         print("gt_match: ", gt_match)
-        print("pred_scores",pred_scores)
+        print("pred_scores", pred_scores)
         gt_m.extend(gt_match)
         pred_m.extend(pred_match)
         pred_s.extend(pred_scores)
@@ -334,11 +335,11 @@ def test(model, to_save=True):
     precisions = np.cumsum(pred_m > -1) / (np.arange(len(pred_m)) + 1)
     recalls = np.cumsum(pred_m > -1).astype(np.float32) / len(gt_m)
     precision_recall_hand_rcnn = np.concatenate((precisions, recalls), axis=0)
-    
+
     mAP = voc_ap(recalls, precisions)
     print("AP = ", mAP)
 
-    pr_dict = {"precison":precisions, "recall":recalls}
+    pr_dict = {"precison": precisions, "recall": recalls}
 
     # angle
     delta_angles = [np.abs(pred_a[i] - gt_a[i]) for i in range(len(pred_a))]
@@ -358,15 +359,14 @@ def test(model, to_save=True):
     print("thres = 20, accu = ", accuracys[20])
     print("thres = 30, accu = ", accuracys[30])
 
-    
     return mAP
 
 
 def test_bbox(model, to_save=True):
     # Test dataset.
-    testset = args.dataset + '_test'
+    testset = args.dataset
     dataset_test = HandDataset()
-    dataset_test.load_hand('datasets/' + args.dataset + "/test_annotations.txt")
+    dataset_test.load_hand('datasets/' + args.dataset + "_test_annotations.txt")
     dataset_test.prepare()
     pred_m = []
     gt_m = []
@@ -414,9 +414,9 @@ def test_bbox(model, to_save=True):
             if len(pred_boxes) > 0:
                 gt_match, pred_match, overlaps, pred_scores, gt_angles, pred_angles = \
                     utils.compute_matches_with_scores_bbox(gt_boxes, gt_class_ids, gt_masks, gt_orientations,
-                                                      pred_boxes, pred_class_ids, pred_scores, pred_masks,
-                                                      pred_orientations,
-                                                      iou_threshold=0.5, score_threshold=0.0)
+                                                           pred_boxes, pred_class_ids, pred_scores, pred_masks,
+                                                           pred_orientations,
+                                                           iou_threshold=0.5, score_threshold=0.0)
                 gt_a.extend(gt_angles)
                 pred_a.extend(pred_angles)
 
@@ -474,10 +474,10 @@ def test_bbox(model, to_save=True):
     print("AP = ", mAP)
 
     plt.figure(1)
-    plt.plot(recalls,precisions)
-    plt.savefig(dir_name+args.testset+"_pre_rec.png")
+    plt.plot(recalls, precisions)
+    plt.savefig(dir_name + args.testset + "_pre_rec.png")
 
-    pr_dict = {"precison":precisions, "recall":recalls}
+    pr_dict = {"precison": precisions, "recall": recalls}
 
     # angle
     delta_angles = [np.abs(pred_a[i] - gt_a[i]) for i in range(len(pred_a))]
@@ -485,17 +485,18 @@ def test_bbox(model, to_save=True):
         delta_angles[i] = delta_angles[i] % 360
         if delta_angles[i] > 180:
             delta_angles[i] = 360 - delta_angles[i]
+
     def angle_accuracy(d_angles, thres=10):
         pred_r = [dangle <= thres for dangle in d_angles]
         accu = sum(pred_r) / len(pred_r)
         return accu,
+
     accuracys = [angle_accuracy(delta_angles, thres) for thres in range(90)]
     print("num matched = ", len(delta_angles))
     print("thres = 10, accu = ", accuracys[10])
     print("thres = 20, accu = ", accuracys[20])
     print("thres = 30, accu = ", accuracys[30])
 
-    
     return mAP
 
 
@@ -514,14 +515,14 @@ def color_white(image, mask, angle):
     # green = 100 * np.ones((h,w,3)) + image
 
     alpha = 0.5
-    color = [0,255,0]
-    color_mask = np.zeros((h,w,3))
-    color_mask[:,:,:] = color
-    color_mask = image * (1-alpha) + alpha * color_mask
+    color = [0, 255, 0]
+    color_mask = np.zeros((h, w, 3))
+    color_mask[:, :, :] = color
+    color_mask = image * (1 - alpha) + alpha * color_mask
     # white = image * (1 - alpha) + alpha * np.ones((h,w,3)) * 255,
     # white = image        # rr, cc = skimage.draw.line(int(yc), int(xc), int(yc + 20 * math.sin(angle[i])), int(xc + 20*math.cos(angle[i])),width=10)
-        # print("line",rr, cc)
-        # image[rr, cc, :] = [255, 0, 0]
+    # print("line",rr, cc)
+    # image[rr, cc, :] = [255, 0, 0]
     # draw mask
     if mask.shape[-1] > 0:
         # We're treating all instances as one, so collapse the mask into one layer
@@ -537,23 +538,23 @@ def color_white(image, mask, angle):
     _, _, num = mask.shape
     print(mask.shape)
     for i in range(num):
-        yy, xx = np.where(mask[:,:,i])
+        yy, xx = np.where(mask[:, :, i])
         dw = max(xx) - min(xx)
         dh = max(yy) - min(yy)
-        dr = np.sqrt(dw**2 + dh**2)
+        dr = np.sqrt(dw ** 2 + dh ** 2)
         xc = int(np.mean(xx))
         yc = int(np.mean(yy))
-        xe = int(xc + dr/2 * math.cos(angle[i]))
-        ye = int(yc + dr/2 * math.sin(angle[i]))
-        colored = cv2.line(colored, (xc, yc), (xe, ye), color=[255,0,0], thickness=2)
-        colored[yc-1:yc+1,xc-1:xc+1,:] = [255, 255, 255]
-        xe_a1 = int(xe - 5*math.cos(angle[i] + math.pi/6))
-        ye_a1 = int(ye - 5*math.sin(angle[i] + math.pi/6))
-        xe_a2 = int(xe - 5*math.cos(angle[i] - math.pi/6))
-        ye_a2 = int(ye - 5*math.sin(angle[i] - math.pi/6))
+        xe = int(xc + dr / 2 * math.cos(angle[i]))
+        ye = int(yc + dr / 2 * math.sin(angle[i]))
+        colored = cv2.line(colored, (xc, yc), (xe, ye), color=[255, 0, 0], thickness=2)
+        colored[yc - 1:yc + 1, xc - 1:xc + 1, :] = [255, 255, 255]
+        xe_a1 = int(xe - 5 * math.cos(angle[i] + math.pi / 6))
+        ye_a1 = int(ye - 5 * math.sin(angle[i] + math.pi / 6))
+        xe_a2 = int(xe - 5 * math.cos(angle[i] - math.pi / 6))
+        ye_a2 = int(ye - 5 * math.sin(angle[i] - math.pi / 6))
 
-        colored = cv2.line(colored, (xe, ye), (xe_a1,ye_a1), color=[255,0,0], thickness=2)
-        colored = cv2.line(colored, (xe, ye), (xe_a2,ye_a2), color=[255,0,0], thickness=2)
+        colored = cv2.line(colored, (xe, ye), (xe_a1, ye_a1), color=[255, 0, 0], thickness=2)
+        colored = cv2.line(colored, (xe, ye), (xe_a2, ye_a2), color=[255, 0, 0], thickness=2)
 
     return colored
 
@@ -596,7 +597,7 @@ def detect_and_color_splash(model, image_path=None, video_path=None):
         # Save output
         file_name = "./results/splash_{:%Y%m%dT%H%M%S}.png".format(datetime.datetime.now())
         skimage.io.imsave(file_name, splash)
-        
+
     elif video_path:
         import cv2
         # Video capture
@@ -670,7 +671,7 @@ if __name__ == '__main__':
                         metavar="path to imageset",
                         help='imageset to apply the color splash effect on')
     parser.add_argument('--testset', required=False,
-                        metavar="path to imageset",default="oxford",
+                        metavar="path to imageset", default="oxford",
                         help='imageset to apply the color splash effect on')
     args = parser.parse_args()
 
@@ -678,8 +679,8 @@ if __name__ == '__main__':
     if args.command == "train":
         assert args.dataset, "Argument --dataset is required for training"
     elif args.command == "splash":
-        assert args.image or args.video,\
-               "Provide --image or --video to apply color splash"
+        assert args.image or args.video, \
+            "Provide --image or --video to apply color splash"
     elif args.command == "splash_set":
         assert args.imageset_path, "provide imageset_path"
 
@@ -696,6 +697,8 @@ if __name__ == '__main__':
             # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
             GPU_COUNT = 1
             IMAGES_PER_GPU = 1
+
+
         config = InferenceConfig()
     config.display()
 
@@ -724,7 +727,7 @@ if __name__ == '__main__':
 
     # Load weights
     print("Loading weights ", weights_path)
-    if args.weights.lower() == "coco":
+    if args.weights.lower() == "coco" or args.weights == "model/mask_rcnn_coco.h5":
         # Exclude the last layers because they require a matching
         # number of classes
         model.load_weights(weights_path, by_name=True, exclude=[
@@ -757,7 +760,9 @@ if __name__ == '__main__':
     elif args.command == "test":
         test(model, to_save=True)
     elif args.command == "test_bbox":
-        test_bbox(model,to_save=True)
+        test_bbox(model, to_save=True)
     else:
         print("'{}' is not recognized. "
-              "Use 'train' or 'splash'".format(args.command)) 
+              "Use 'train' or 'splash'".format(args.command))
+
+

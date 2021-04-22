@@ -32,7 +32,7 @@ dataset = {'COCO-S': {'anno_train': './datasets/COCO-Hand/COCO-Hand-S/COCO-Hand-
 def get_list(name, c = '_train'):
     l = open(dataset[name]['anno'+c], 'r').read().split('\n')
     # if l[0].split(',').split('/')
-    l = [dataset[name]['prefix'] + i.split(',')[0].split('/')[-1] for i in l if i]
+    l = [dataset[name]['prefix'] + i.split('/')[-1] for i in l if i]
     print(l[:10])
     return l
 
